@@ -25,10 +25,10 @@
     "typescript": "^3.2.2"
   },
   "dependencies": {
-    "@types/node-fetch": "^2.1.4",
     "dotenv": "^6.2.0",
     "dropbox": "^4.0.14",
     "express": "^4.16.4",
-    "node-fetch": "^2.3.0"
+    "fetch-with-proxy": "^1.1.0",
+    "isomorphic-fetch": "^2.2.1"
   }
 }

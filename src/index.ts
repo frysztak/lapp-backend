@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 import express from "express";
-import fetch from "node-fetch";
+import fetch from "fetch-with-proxy";
 import { Dropbox } from "dropbox";
 
 const app = express();
