@@ -2,7 +2,7 @@
 Description=Lapp Backend
 
 [Service]
-ExecStart=npm run prod -- --port=3333
+ExecStart=/usr/bin/npm run prod -- --port=3333
 WorkingDirectory=/home/sebastian/repo/lapp-backend
 Restart=always
 RestartSec=10
