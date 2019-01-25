@@ -4,6 +4,17 @@ import express from "express";
 import fetch from "fetch-with-proxy";
 import { Dropbox } from "dropbox";
 
+import yargs from "yargs";
+
+const argv = yargs
+  .option("port", {
+    alias: "p",
+    type: "number",
+    description: "Port number"
+  })
+  .demandOption("port")
+  .strict().argv;
+
 const app = express();
 
 var env = process.env.NODE_ENV || "development";
@@ -46,6 +57,6 @@ app.get("/accessToken", async (req, res) => {
   }
 });
 
-app.listen(3333, () => {
-  console.log("Listening on port 3333");
+app.listen(argv.port, () => {
+  console.log(`Listening on port ${argv.port}`);
 });
