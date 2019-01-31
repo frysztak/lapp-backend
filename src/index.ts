@@ -77,11 +77,13 @@ interface QueueItem {
 let notificationsQueue: QueueItem[] = [];
 let idsToNotify: string[] = [];
 
-const timerInterval = 250;
-const storageTime = 500;
+const timerInterval = 500;
+const storageTime = 1500;
 
 const processQueue = () => {
   // 1. add new entries
+  if (idsToNotify.length === 0 && notificationsQueue.length === 0) return;
+
   for (const id of idsToNotify) {
     const item = notificationsQueue.find(i => i.accountID === id);
     if (!item) {
@@ -100,12 +102,13 @@ const processQueue = () => {
     i => Date.now() - i.timeInserted > storageTime
   );
   for (const notification of notificationsToSend) {
+    console.log(`Sending out notification for id ${notification.accountID}`);
     UpdateStream.send({ accountID: notification.accountID }, "folderChanged");
   }
 
   // 3. remove already processed notifications
   notificationsQueue = notificationsQueue.filter(
-    i => !notificationsQueue.includes(i)
+    i => !notificationsToSend.find(s => s.accountID === i.accountID)
   );
 };
 
@@ -116,9 +119,7 @@ app.post("/webhook", (req, res) => {
     return;
   }
 
-  console.log(`${JSON.stringify(req.body.list_folder)}`);
   const accountIDs = req.body.list_folder.accounts;
-  console.log(`Notifying the following IDs: ${accountIDs}`);
   for (const accountID of accountIDs) {
     idsToNotify.push(accountID);
   }
