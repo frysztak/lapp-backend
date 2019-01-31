@@ -1,7 +1,9 @@
 require("dotenv").config();
 
 import express from "express";
+import bodyParser from "body-parser";
 import fetch from "fetch-with-proxy";
+import SSE from "express-sse";
 import { Dropbox } from "dropbox";
 
 import yargs from "yargs";
@@ -16,6 +18,7 @@ const argv = yargs
   .strict().argv;
 
 const app = express();
+app.use(bodyParser.json());
 
 var env = process.env.NODE_ENV || "development";
 if (env === "development") {
@@ -33,6 +36,8 @@ const dbx = new Dropbox({
   clientSecret: process.env.DROPBOX_SECRET,
   fetch: fetch
 } as any);
+
+const UpdateStream = new SSE();
 
 app.get("/accessToken", async (req, res) => {
   const authorizationCode: string = req.query.authorizationCode;
@@ -56,6 +61,30 @@ app.get("/accessToken", async (req, res) => {
     res.status(401).send("No authorization code");
   }
 });
+
+app.get("/webhook", (req, res) => {
+  const challenge: string = req.query.challenge;
+  res.setHeader("Content-Type", "text/plain");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.send(challenge);
+});
+
+app.post("/webhook", (req, res) => {
+  if (!req.header("X-Dropbox-Signature")) {
+    res.status(403);
+    res.end();
+    return;
+  }
+
+  console.log(`${JSON.stringify(req.body.list_folder)}`);
+  const accountIDs = req.body.list_folder.accounts;
+  console.log(`Notifying the following IDs: ${accountIDs}`);
+  for (const accountID of accountIDs) {
+    UpdateStream.send({ accountID: accountID }, "folderChanged");
+  }
+});
+
+app.get("/notifications", UpdateStream.init);
 
 app.listen(argv.port, () => {
   console.log(`Listening on port ${argv.port}`);
