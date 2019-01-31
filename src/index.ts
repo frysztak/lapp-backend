@@ -69,6 +69,46 @@ app.get("/webhook", (req, res) => {
   res.send(challenge);
 });
 
+interface QueueItem {
+  accountID: string;
+  timeInserted: number;
+}
+
+let notificationsQueue: QueueItem[] = [];
+let idsToNotify: string[] = [];
+
+const timerInterval = 250;
+const storageTime = 500;
+
+const processQueue = () => {
+  // 1. add new entries
+  for (const id of idsToNotify) {
+    const item = notificationsQueue.find(i => i.accountID === id);
+    if (!item) {
+      notificationsQueue.push({ accountID: id, timeInserted: Date.now() });
+    } else {
+      notificationsQueue = notificationsQueue.map(i =>
+        i.accountID === item.accountID ? { ...i, timeInserted: Date.now() } : i
+      );
+    }
+  }
+
+  idsToNotify = [];
+
+  // 2. check if any notifications are old enough
+  const notificationsToSend = notificationsQueue.filter(
+    i => Date.now() - i.timeInserted > storageTime
+  );
+  for (const notification of notificationsToSend) {
+    UpdateStream.send({ accountID: notification.accountID }, "folderChanged");
+  }
+
+  // 3. remove already processed notifications
+  notificationsQueue = notificationsQueue.filter(
+    i => !notificationsQueue.includes(i)
+  );
+};
+
 app.post("/webhook", (req, res) => {
   if (!req.header("X-Dropbox-Signature")) {
     res.status(403);
@@ -80,11 +120,13 @@ app.post("/webhook", (req, res) => {
   const accountIDs = req.body.list_folder.accounts;
   console.log(`Notifying the following IDs: ${accountIDs}`);
   for (const accountID of accountIDs) {
-    UpdateStream.send({ accountID: accountID }, "folderChanged");
+    idsToNotify.push(accountID);
   }
 });
 
 app.get("/notifications", UpdateStream.init);
+
+setInterval(() => processQueue(), timerInterval);
 
 app.listen(argv.port, () => {
   console.log(`Listening on port ${argv.port}`);
