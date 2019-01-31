@@ -37,7 +37,7 @@ const dbx = new Dropbox({
   fetch: fetch
 } as any);
 
-const UpdateStream = new SSE();
+const UpdateStream = new SSE([{ accountID: "" }]);
 
 app.get("/accessToken", async (req, res) => {
   const authorizationCode: string = req.query.authorizationCode;
