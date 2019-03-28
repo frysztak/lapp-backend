@@ -6,19 +6,9 @@
   "scripts": {
     "tsc": "tsc",
     "dev": "ts-node-dev --respawn --transpileOnly ./src/index.ts",
-    "prod": "tsc && node ./build/index.js",
+    "start": "tsc && node ./build/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@gitlab.com/frysztak/lapp-backend.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://gitlab.com/frysztak/lapp-backend/issues"
-  },
-  "homepage": "https://gitlab.com/frysztak/lapp-backend#readme",
   "devDependencies": {
     "@types/express": "^4.16.0",
     "@types/yargs": "^12.0.8",
