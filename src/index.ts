@@ -6,17 +6,6 @@ import fetch from "fetch-with-proxy";
 import SSE from "express-sse";
 import { Dropbox } from "dropbox";
 
-import yargs from "yargs";
-
-const argv = yargs
-  .option("port", {
-    alias: "p",
-    type: "number",
-    description: "Port number"
-  })
-  .demandOption("port")
-  .strict().argv;
-
 const app = express();
 app.use(bodyParser.json());
 
@@ -129,6 +118,7 @@ app.get("/notifications", UpdateStream.init);
 
 setInterval(() => processQueue(), timerInterval);
 
-app.listen(argv.port, () => {
-  console.log(`Listening on port ${argv.port}`);
+const port = process.env.PORT_NUMBER || 3333;
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
 });
